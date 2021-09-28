@@ -1,0 +1,8 @@
+// Module included in the following assemblies:
+//
+// * tests/fixtures/assem-a.adoc
+
+[id="a_{context}"]
+= Module A
+
+Some para.

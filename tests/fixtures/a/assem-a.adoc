@@ -1,0 +1,5 @@
+= Assembly A
+
+Some intro para.
+
+include::modules/a.adoc[leveloffset=+1]

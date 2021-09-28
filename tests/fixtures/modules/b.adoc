@@ -1,0 +1,7 @@
+// Module included in the following assemblies:
+//
+// * b/assem-b.adoc
+[id="b_{context}"]
+= Module B
+
+Some para.

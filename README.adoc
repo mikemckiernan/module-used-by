@@ -1,0 +1,33 @@
+= module-used-by
+
+[WARNING]
+====
+This repository is beta software.
+====
+
+The purpose of this pre-commit hook is narrow.
+The goal is to ensure that Asciidoc (.adoc) files in the `modules` directory of the `openshift-docs` repo are updated with the names of the assembly AsciiDoc files that reference them.
+
+== Installation
+
+See link:https://pre-commit.com[pre-commit] for instructions.
+
+Sample `.pre-commit-config.yaml`:
+
+[source,yaml]
+----
+- repo: https://github.com/mikemckiernan/module-used-by
+  rev: v0.1.0
+  hooks:
+  - id: module-used-by
+    types: [asciidoc]
+----
+
+== Contributing
+
+Run the tests with the following command:
+
+[source,bash]
+----
+python -m pytest
+----

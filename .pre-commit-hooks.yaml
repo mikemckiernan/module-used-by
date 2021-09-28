@@ -1,0 +1,5 @@
+- id: module-used-by
+  name: Module used by
+  description: Update the module comment with the assembly file names.
+  entry: module-used-by
+  language: python

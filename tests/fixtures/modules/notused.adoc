@@ -1,0 +1,4 @@
+[id="c_{context}"]
+= Module C
+
+Some para by some rule breaker.

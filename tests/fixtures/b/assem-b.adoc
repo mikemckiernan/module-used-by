@@ -1,0 +1,6 @@
+= Assembly B
+
+Some intro para.
+
+include::modules/a.adoc[leveloffset=+1]
+include::modules/b.adoc[leveloffset=+1]

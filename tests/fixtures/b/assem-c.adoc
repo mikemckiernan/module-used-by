@@ -1,0 +1,8 @@
+= Assembly C
+
+Some intro para.
+
+Other para.
+
+include::modules/c.adoc[leveloffset+=1]
+
