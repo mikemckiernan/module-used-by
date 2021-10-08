@@ -1,5 +1,9 @@
 = module-used-by
 
+ifdef::env-github[]
+:warning-caption: :fire:
+endif::[]
+
 [WARNING]
 ====
 This repository is beta software.
