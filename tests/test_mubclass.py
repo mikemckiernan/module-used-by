@@ -58,10 +58,10 @@ def test_get_used_by_from_search():
     except FileNotFoundError as err:
         print("Error: ", err)
         sys.exit(2)
-    assert("a.adoc" in mub.used_by.keys())
-    assert("assem-a.adoc" in x for x in mub.used_by["a.adoc"])
-    assert("assem-b.adoc" in x for x in mub.used_by["a.adoc"])
-    assert("assem-c.adoc" not in x for x in mub.used_by["a.adoc"])
+    assert("modules/a.adoc" in mub.used_by.keys())
+    assert("assem-a.adoc" in x for x in mub.used_by["modules/a.adoc"])
+    assert("assem-b.adoc" in x for x in mub.used_by["modules/a.adoc"])
+    assert("assem-c.adoc" not in x for x in mub.used_by["modules/a.adoc"])
 
 
 def test_get_used_by_from_comments():
@@ -119,6 +119,14 @@ def test_update_used_by_info_stale():
     assert(lines[3] == '// * b/assem-b.adoc\n')
     assert(lines[4] == '\n')
     assert(lines[5] == '[id="a_{context}"]\n')
+
+def test_get_includes_from_file():
+    mub = MUB(".")
+    assembly = Path("tests/fixtures/b/assem-c.adoc")
+    with assembly.open() as f:
+        lines = f.readlines()
+    included_modules = mub.get_includes_from_file(lines)
+    assert("modules/c.adoc" in included_modules)
 
 
 def test_update_used_by_info_no_change():

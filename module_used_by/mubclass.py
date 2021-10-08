@@ -14,7 +14,7 @@ from pathlib import Path
 class MUB:
     MUB_COMMENT = "// Module included in the following assemblies:"
     EXCLUDE_DIRS = ["modules"]
-    INCLUDE_PATTERN = re.compile("^include::modules\/(.+\.adoc)")
+    INCLUDE_PATTERN = re.compile("^include::(modules\/.+\.adoc)")
     repo = None
     repodir = None  # This directory can be relative to the repo.
     otherdirs = []
@@ -56,6 +56,16 @@ class MUB:
                     self.used_by[match.group(1)].append(
                         str(f.relative_to(self.repodir)))
 
+    def get_includes_from_file(self, lines: "list[str]") -> "list[str]":
+        included_modules = []
+        for line in lines:
+            match = self.INCLUDE_PATTERN.match(line)
+            if not match:
+                continue
+            included_modules.append(match.group(1))
+        return included_modules
+
+
     # Read the file as a list of strings.
     # If the file has the "Modules..." string in a comment, then
     # compare those with the comments that were retrieved from
@@ -65,17 +75,18 @@ class MUB:
     # If the function returns a list of strings, the list is the new file
     # content.
     def update_used_by_info(self, file: Path, lines: "list[str]") -> "list[str]":
+        relative_fname = str(file.resolve().relative_to(self.repodir))
         from_comments = []  # Assume the heading is not present.
         comment_end_lineno = 0  # If no heading, add new heading at line 0.
 
-        # Use "Module " so that typos for assemblies are ignored.
+        # Search for "Module " so that typos and variations are tolerated.
         has_intro_comment = any("// Module " in line for line in lines)
         if has_intro_comment:
             comment_end_lineno, from_comments = self.get_used_by_from_comments(
                 lines)
 
         try:
-            from_search = self.used_by[file.name]
+            from_search = self.used_by[relative_fname]
         except KeyError as ke:
             print("Module is not used by any assemblies: ", file.name)
             return
@@ -114,17 +125,21 @@ def fix_file():
     files_modified = False
     filenames = []
 
+    mub = MUB(sys.argv[1])
+    if None == mub.repo:
+        print(f"Failed to locate the git repository from: {sys.argv[1]}")
+        os._exit(2)
+
     for filename in sys.argv:
         if re.search('modules', filename):
             filenames.append(filename)
+        else:
+            # For assemblies, find the `include::` directive, and
+            # add those modules to the list of modules to check.
+            with Path(filename).open() as f:
+                lines = f.readlines()
+                filenames += mub.get_includes_from_file(lines)
 
-    if 0 == len(filenames):
-        return 0
-
-    mub = MUB(filenames[0])
-    if None == mub.repo:
-        print(f"Failed to locate the git repository from: {filenames[0]}")
-        os._exit(2)
 
     mub.find_assembly_dirs()
     mub.find_assembly_files()
