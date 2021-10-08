@@ -15,6 +15,7 @@ class MUB:
     MUB_COMMENT = "// Module included in the following assemblies:"
     EXCLUDE_DIRS = ["modules"]
     INCLUDE_PATTERN = re.compile("^include::(modules\/.+\.adoc)")
+    EXCLUDE_FILES = ["modules/common-attributes.adoc"]
     repo = None
     repodir = None  # This directory can be relative to the repo.
     otherdirs = []
@@ -61,6 +62,8 @@ class MUB:
         for line in lines:
             match = self.INCLUDE_PATTERN.match(line)
             if not match:
+                continue
+            if match.group(1) in self.EXCLUDE_FILES:
                 continue
             included_modules.append(match.group(1))
         return included_modules
