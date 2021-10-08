@@ -68,7 +68,8 @@ class MUB:
         from_comments = []  # Assume the heading is not present.
         comment_end_lineno = 0  # If no heading, add new heading at line 0.
 
-        has_intro_comment = any(self.MUB_COMMENT in line for line in lines)
+        # Use "Module " so that typos for assemblies are ignored.
+        has_intro_comment = any("// Module " in line for line in lines)
         if has_intro_comment:
             comment_end_lineno, from_comments = self.get_used_by_from_comments(
                 lines)
@@ -102,6 +103,10 @@ class MUB:
                 matches.append(match.group(1).strip())
             line_no += 1
             if re.match(("^[ =\[\w]|\s*$"), line):
+                # If the line after the last comment is not blank,
+                # such as `[id=...`, then back up to the last comment line.
+                if len(lines[line_no].strip()) != 0:
+                    line_no -= 1
                 break
         return line_no, matches
 
@@ -132,7 +137,7 @@ def fix_file():
         with file.open(mode='r') as f:
             lines = f.readlines()
 
-            modlines = mub.update_used_by_info(file, lines)
+        modlines = mub.update_used_by_info(file, lines)
         if None == modlines:
             continue
 
