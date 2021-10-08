@@ -83,13 +83,16 @@ class MUB:
         search_set = frozenset(from_search)
         comments_set = frozenset(from_comments)
 
-        diff = search_set.symmetric_difference(comments_set)
+        diff = search_set.difference(comments_set)
         if len(diff) == 0:
             return
         comment = [self.MUB_COMMENT + '\n', "//\n"]
         for x in sorted(search_set):
             comment.append("// * {}\n".format(x))
-        comment.append('\n')
+        # If the first line that follows the original comment
+        # is not a blank line, pad with an additional blank line.
+        if len(lines[comment_end_lineno]) > len('\n'):
+            comment.append('\n')
         return comment + lines[comment_end_lineno:]
 
     def get_used_by_from_comments(self, lines: "list[str]") -> "tuple[int, list[str]]":
@@ -101,13 +104,9 @@ class MUB:
             match = re.match("^//\s*\*?(.+\.adoc)", line)
             if match:
                 matches.append(match.group(1).strip())
-            line_no += 1
-            if re.match(("^[ =\[\w]|\s*$"), line):
-                # If the line after the last comment is not blank,
-                # such as `[id=...`, then back up to the last comment line.
-                if len(lines[line_no].strip()) != 0:
-                    line_no -= 1
+            if not re.match(("^//"), line):
                 break
+            line_no += 1
         return line_no, matches
 
 

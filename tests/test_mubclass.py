@@ -90,7 +90,7 @@ def test_get_used_by_from_comments():
     assert(len(lines) == 0)
 
     line_no, one_resp = mub.get_used_by_from_comments(one)
-    assert(line_no == 4)
+    assert(line_no == 3)
     assert(len(one_resp) == 1)
     assert("net/cookies/recipe.adoc" in one_resp)
 
@@ -120,6 +120,7 @@ def test_update_used_by_info_stale():
     assert(lines[4] == '\n')
     assert(lines[5] == '[id="a_{context}"]\n')
 
+
 def test_update_used_by_info_no_change():
     mub = MUB(".")
     modlines = Path("tests/fixtures/modules/b.adoc")
@@ -136,6 +137,7 @@ def test_update_used_by_info_no_change():
     lines = mub.update_used_by_info(modlines, orig)
 
     assert(None == lines)
+
 
 def test_update_used_by_info_not_comment():
     mub = MUB(".")
@@ -158,6 +160,7 @@ def test_update_used_by_info_not_comment():
     assert(lines[3] == '\n')
     assert(lines[4] == '[id="c_{context}"]\n')
     assert(lines[5] == '= Module C\n')
+
 
 def test_update_used_by_info_not_used():
     mub = MUB(".")
