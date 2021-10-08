@@ -129,23 +129,15 @@ def fix_file():
     for fname in filenames:
         file = Path(fname)
 
-        from_search = mub.used_by[file.name]
-        from_comments = ()
-
         with file.open(mode='r') as f:
             lines = f.readlines()
-            line_no, from_comments = mub.get_used_by_from_comments(lines)
 
-        search_set = frozenset(from_search)
-        comments_set = frozenset(from_comments)
-
-        diff = search_set.difference(comments_set)
-        if None == diff:
+            modlines = mub.update_used_by_info(file, lines)
+        if None == modlines:
             continue
 
         print(f'Fixing {str(file)}')
         with file.open(mode="w") as f:
-            modlines = mub.update_used_by_info(file, lines)
             f.seek(0)
             f.truncate()
             f.write(''.join(modlines))
