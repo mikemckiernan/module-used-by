@@ -23,6 +23,59 @@ Sample `.pre-commit-config.yaml`:
     types: [asciidoc]
 ----
 
+== Limitations
+
+=== Other information in a module-used-by block comment
+
+Comments at the end of the module-used-by block comment are not preserved.
+If the comment block ends like the following example, then the hook deletes last two lines of the comment.
+
+.Sample input for a comment block with trailing information
+[source,asciidoc,highlight="4,5"]
+----
+...
+// * cookies/holiday/gingerbread.adoc
+// * cookies/chocolate-chip.adoc
+//
+// Bread recipes link to this; do not change anchor
+----
+
+.Sample output with the trailing information deleted
+[source,asciidoc]
+----
+...
+// * cookies/holiday/gingerbread.adoc
+// * cookies/chocolate-chip.adoc
+----
+
+=== Comments before the module-used-by block comment
+
+If the module-used-by block comment is preceded by another comment, the hook deletes the first comment and then inserts the module-used-by block comment.
+As a result, the hook leaves the file with the original module-used-by comment block as the second comment, or in any subsequent position.
+
+.Sample input for a preceding comment block
+[source,asciidoc,highlight="1..3"]
+----
+// TODO -  possibly delete this file
+// Or does someone want anchovy-and-anise-flavored cookies?
+
+// Module included in the following assemblies:
+//
+----
+
+.Sample output with the first comment block deleted
+[source,asciidoc]
+----
+// Module included in the following assemblies:
+//
+// * installing/installing_aws/installing-aws-network-customizations.adoc
+// * installing/installing_azure/installing-azure-network-customizations.adoc
+
+// Module included in the following assemblies:
+//
+...
+----
+
 == Contributing
 
 Run the tests with the following command:
