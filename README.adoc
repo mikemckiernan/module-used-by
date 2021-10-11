@@ -21,11 +21,13 @@ Sample `.pre-commit-config.yaml`:
 [source,yaml]
 ----
 - repo: https://github.com/mikemckiernan/module-used-by
-  rev: v0.1.0
+  rev: v0.1.3
   hooks:
   - id: module-used-by
     types: [asciidoc]
 ----
+
+Refer to the link:https://github.com/mikemckiernan/module-used-by/tags[tags] page to find the most recent `rev`.
 
 == Limitations
 
