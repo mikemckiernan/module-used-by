@@ -5,8 +5,7 @@ from git import Repo
 import os
 import sys
 import re
-import io
-
+import argparse
 
 from pathlib import Path
 
@@ -68,7 +67,6 @@ class MUB:
             included_modules.append(match.group(1))
         return included_modules
 
-
     # Read the file as a list of strings.
     # If the file has the "Modules..." string in a comment, then
     # compare those with the comments that were retrieved from
@@ -77,6 +75,7 @@ class MUB:
     # If the function returns nothing, then there is no update to make.
     # If the function returns a list of strings, the list is the new file
     # content.
+
     def update_used_by_info(self, file: Path, lines: "list[str]") -> "list[str]":
         relative_fname = str(file.resolve().relative_to(self.repodir))
         from_comments = []  # Assume the heading is not present.
@@ -124,16 +123,29 @@ class MUB:
         return line_no, matches
 
 
-def fix_file():
+def process_args(args: "list[str]") -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--exclude-dir', action="extend", nargs="+", type=str)
+    parser.add_argument('--exclude-file', action="extend", nargs='+', type=str)
+    parser.add_argument('filename', nargs='*', type=str)
+    res = parser.parse_args(args)
+    return res
+
+
+def fix_file(args: "list[str]"):
     files_modified = False
     filenames = []
+    result = process_args(args)
 
-    mub = MUB(sys.argv[1])
+    mub = MUB(result.filename[1])
     if None == mub.repo:
         print(f"Failed to locate the git repository from: {sys.argv[1]}")
         os._exit(2)
 
-    for filename in sys.argv:
+    mub.EXCLUDE_DIRS += result.exclude_dir
+    mub.EXCLUDE_FILES += result.exclude_file
+
+    for filename in result.filename:
         if re.search('modules', filename):
             filenames.append(filename)
         else:
@@ -142,7 +154,6 @@ def fix_file():
             with Path(filename).open() as f:
                 lines = f.readlines()
                 filenames += mub.get_includes_from_file(lines)
-
 
     mub.find_assembly_dirs()
     mub.find_assembly_files()

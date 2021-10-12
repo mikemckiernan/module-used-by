@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from module_used_by.mubclass import MUB
+from module_used_by.mubclass import MUB, process_args
 
 
 def test_find_assembly_dirs():
@@ -120,6 +120,7 @@ def test_update_used_by_info_stale():
     assert(lines[4] == '\n')
     assert(lines[5] == '[id="a_{context}"]\n')
 
+
 def test_get_includes_from_file():
     mub = MUB(".")
     assembly = Path("tests/fixtures/b/assem-c.adoc")
@@ -188,3 +189,30 @@ def test_update_used_by_info_not_used():
     # Nothing is returned with the logic that the file
     # should just be left as-is.
     assert(None == lines)
+
+
+def test_process_args_files():
+    args = ["one", "two", "three"]
+    res = process_args(args)
+    assert("one" in res.filename)
+    assert("foo" not in res.filename)
+
+
+def test_process_args_exclude_dirs():
+    args = ["--exclude-dir=foo", "--exclude-dir=bar", "one", "two", "three"]
+    res = process_args(args)
+    assert("one" in res.filename)
+    assert("foo" not in res.filename)
+    assert("bar" not in res.filename)
+    assert("foo" in res.exclude_dir)
+    assert("bar" in res.exclude_dir)
+
+
+def test_process_args_exclude_dirs():
+    args = ["--exclude-file=some/file.adoc",
+            "--exclude-dir=bar", "one", "two", "three"]
+    res = process_args(args)
+    assert("one" in res.filename)
+    assert("bar" not in res.filename)
+    assert("some/file.adoc" in res.exclude_file)
+    assert("bar" in res.exclude_dir)
