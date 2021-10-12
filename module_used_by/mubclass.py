@@ -123,7 +123,7 @@ class MUB:
         return line_no, matches
 
 
-def process_args(args: "list[str]") -> None:
+def process_args(args: "list[str]"):
     parser = argparse.ArgumentParser()
     parser.add_argument('--exclude-dir', action="extend", nargs="+", type=str)
     parser.add_argument('--exclude-file', action="extend", nargs='+', type=str)
@@ -132,10 +132,10 @@ def process_args(args: "list[str]") -> None:
     return res
 
 
-def fix_file(args: "list[str]"):
+def fix_file():
     files_modified = False
     filenames = []
-    result = process_args(args)
+    result = process_args(sys.argv)
 
     mub = MUB(result.filename[1])
     if None == mub.repo:
