@@ -5,7 +5,6 @@ from git import Repo
 import os
 import sys
 import re
-import argparse
 
 from pathlib import Path
 
@@ -123,13 +122,29 @@ class MUB:
         return line_no, matches
 
 
-def process_args(args: "list[str]"):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--exclude-dir', action="extend", nargs="+", type=str)
-    parser.add_argument('--exclude-file', action="extend", nargs='+', type=str)
-    parser.add_argument('filename', nargs='*', type=str)
-    res = parser.parse_args(args)
-    return res
+def process_args(args: "list[str]") -> "dict":
+    ret = {
+        "files": [],
+        "exclude_dirs": [],
+        "exclude_files": []
+    }
+
+    dir_pattern = re.compile("--exclude-dir=(.+)")
+    file_pattern = re.compile("--exclude-file=(.+)")
+
+    for arg in args:
+        dir_match = re.match(dir_pattern, arg)
+        if dir_match:
+            ret["exclude_dirs"].append(dir_match.group(1).strip())
+            continue
+
+        file_match = re.match(file_pattern, arg)
+        if file_match:
+            ret["exclude_files"].append(file_match.group(1).strip())
+            continue
+
+        ret["files"].append(arg)
+    return ret
 
 
 def fix_file():
@@ -137,17 +152,24 @@ def fix_file():
     filenames = []
     result = process_args(sys.argv)
 
-    mub = MUB(result.filename[1])
+    mub = MUB(result["files"][0])
     if None == mub.repo:
-        print(f"Failed to locate the git repository from: {sys.argv[1]}")
+        print(
+            f"Failed to locate the git repository from: {result['files'][0]}")
         os._exit(2)
 
-    mub.EXCLUDE_DIRS += result.exclude_dir
-    mub.EXCLUDE_FILES += result.exclude_file
+    mub.EXCLUDE_DIRS += result["exclude_dirs"]
+    mub.EXCLUDE_FILES += result["exclude_files"]
 
-    for filename in result.filename:
-        if re.search('modules', filename):
+    for filename in result["files"]:
+        if filename in mub.EXCLUDE_FILES:
+            continue
+        elif re.search('modules', filename):
             filenames.append(filename)
+        # EXCLUDE_DIRS includes `modules`. After accumulating module file names in
+        # the preceding condition, filter assemblies from the directories to exclude.
+        elif str(Path(filename).parent.relative_to(mub.repodir)) in mub.EXCLUDE_DIRS:
+            continue
         else:
             # For assemblies, find the `include::` directive, and
             # add those modules to the list of modules to check.

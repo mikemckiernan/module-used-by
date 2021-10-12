@@ -193,26 +193,29 @@ def test_update_used_by_info_not_used():
 
 def test_process_args_files():
     args = ["one", "two", "three"]
-    res = process_args(args)
-    assert("one" in res.filename)
-    assert("foo" not in res.filename)
+    result = process_args(args)
+    assert("one" in result["files"])
+    assert("foo" not in result["files"])
+    assert(len(result["exclude_dirs"]) == 0)
+    assert(len(result["exclude_files"]) == 0)
 
 
 def test_process_args_exclude_dirs():
     args = ["--exclude-dir=foo", "--exclude-dir=bar", "one", "two", "three"]
-    res = process_args(args)
-    assert("one" in res.filename)
-    assert("foo" not in res.filename)
-    assert("bar" not in res.filename)
-    assert("foo" in res.exclude_dir)
-    assert("bar" in res.exclude_dir)
+    result = process_args(args)
+    assert("one" in result["files"])
+    assert("foo" not in result["files"])
+    assert("bar" not in result["files"])
+    assert("foo" in result["exclude_dirs"])
+    assert("bar" in result["exclude_dirs"])
+    assert(len(result["exclude_files"]) == 0)
 
 
 def test_process_args_exclude_dirs():
     args = ["--exclude-file=some/file.adoc",
             "--exclude-dir=bar", "one", "two", "three"]
-    res = process_args(args)
-    assert("one" in res.filename)
-    assert("bar" not in res.filename)
-    assert("some/file.adoc" in res.exclude_file)
-    assert("bar" in res.exclude_dir)
+    result = process_args(args)
+    assert("one" in result["files"])
+    assert("bar" not in result["files"])
+    assert("some/file.adoc" in result["exclude_files"])
+    assert("bar" in result["exclude_dirs"])
