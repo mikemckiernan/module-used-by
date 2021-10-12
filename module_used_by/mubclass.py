@@ -5,8 +5,6 @@ from git import Repo
 import os
 import sys
 import re
-import io
-
 
 from pathlib import Path
 
@@ -68,7 +66,6 @@ class MUB:
             included_modules.append(match.group(1))
         return included_modules
 
-
     # Read the file as a list of strings.
     # If the file has the "Modules..." string in a comment, then
     # compare those with the comments that were retrieved from
@@ -77,6 +74,7 @@ class MUB:
     # If the function returns nothing, then there is no update to make.
     # If the function returns a list of strings, the list is the new file
     # content.
+
     def update_used_by_info(self, file: Path, lines: "list[str]") -> "list[str]":
         relative_fname = str(file.resolve().relative_to(self.repodir))
         from_comments = []  # Assume the heading is not present.
@@ -124,25 +122,64 @@ class MUB:
         return line_no, matches
 
 
+def process_args(args: "list[str]") -> "dict":
+    ret = {
+        "files": [],
+        "exclude_dirs": [],
+        "exclude_files": []
+    }
+
+    dir_pattern = re.compile("--exclude-dir=(.+)")
+    file_pattern = re.compile("--exclude-file=(.+)")
+
+    for arg in args:
+        dir_match = re.match(dir_pattern, arg)
+        if dir_match:
+            ret["exclude_dirs"].append(dir_match.group(1).strip())
+            continue
+
+        file_match = re.match(file_pattern, arg)
+        if file_match:
+            ret["exclude_files"].append(file_match.group(1).strip())
+            continue
+
+        ret["files"].append(arg)
+    return ret
+
+
 def fix_file():
     files_modified = False
     filenames = []
+    result = process_args(sys.argv[1:])
 
-    mub = MUB(sys.argv[1])
+    mub = MUB(result["files"][0])
     if None == mub.repo:
-        print(f"Failed to locate the git repository from: {sys.argv[1]}")
+        print(
+            f"Failed to locate the git repository from: {result['files'][0]}")
         os._exit(2)
 
-    for filename in sys.argv:
-        if re.search('modules', filename):
+    mub.EXCLUDE_DIRS += result["exclude_dirs"]
+    mub.EXCLUDE_FILES += result["exclude_files"]
+
+    for filename in result["files"]:
+        parent = str(Path(filename).parent)
+
+        if filename in mub.EXCLUDE_FILES:
+            print("File explicitly excluded: {}".format(filename))
+        elif re.search('modules', filename):
             filenames.append(filename)
+        # EXCLUDE_DIRS includes `modules`. After accumulating module file
+        # names in the preceding condition, filter assemblies from the
+        # directories to exclude.
+        elif parent in mub.EXCLUDE_DIRS:
+            print("File is in an explicitly excluded directory {}, file: {}".format(
+                parent, filename))
         else:
             # For assemblies, find the `include::` directive, and
             # add those modules to the list of modules to check.
             with Path(filename).open() as f:
                 lines = f.readlines()
                 filenames += mub.get_includes_from_file(lines)
-
 
     mub.find_assembly_dirs()
     mub.find_assembly_files()
