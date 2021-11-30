@@ -274,11 +274,19 @@ def fix_file():
             # add those modules to the list of modules to check.
             with Path(filename).open(encoding="utf-8") as file:
                 lines = file.readlines()
-                filenames += mub.get_includes_from_file(lines)
+                candidates = mub.get_includes_from_file(lines)
+                for include in candidates:
+                    if os.path.exists(include) and os.path.isfile(include):
+                        filenames.append(include)
+                    else:
+                        print(
+                            f"In assembly '{filename}' included file does not exist or is not a file: '{include}'")
 
     mub.find_assembly_dirs()
     mub.find_assembly_files()
     mub.get_used_by_from_search()
+
+    filenames = list(set(filenames))
 
     for filename in filenames:
         adoc_file = Path(filename)
